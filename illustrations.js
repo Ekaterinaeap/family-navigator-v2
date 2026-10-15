@@ -1,102 +1,146 @@
-/* Иллюстрации-баннеры для ситуаций: плоский дружелюбный стиль (LifeSG / plus.gov.kr),
-   одна синяя гамма + один тёплый акцент. Рисуются в SVG, без внешних картинок. */
+/* Иллюстрации в стиле plus.gov.kr / LifeSG: люди крупным планом, рядом друг с другом,
+   тонкий тёплый контур, румянец, мягкая пастель. Герои — русская внешность. Чистый SVG. */
 (function () {
   'use strict';
-  var C = { b1: '#0D4CD3', b2: '#3567E8', b3: '#7BA4FF', b4: '#C9D7F7', b5: '#E2EAFB', skin: '#F2C8A6', skin2: '#E8B892', dark: '#3B2A22', grey: '#A89A90', ink: '#0B1F33', warm: '#FF9DB4', sun: '#FFD9A0', white: '#fff' };
+  var INK = '#4A3530';
+  var P = {
+    skin: '#FBE2D2', skinSh: '#F0C9B4', blush: '#F2A49B', lip: '#C0645A',
+    bg: '#E2EAFB', bg2: '#C9D7F7', leaf: '#A9C9A4', leaf2: '#86B285', heart: '#F4A6A0', white: '#fff'
+  };
+  var uid = 0;
 
-  /* Человечек: ноги на (x,y), s — масштаб. */
-  function person(o) {
-    var s = o.s || 1, shirt = o.shirt || C.b2, pants = o.pants || C.ink, h = '';
-    var arms = {
-      down: ['M-15 -74Q-24 -58 -21 -44', 'M15 -74Q24 -58 21 -44'],
-      reachL: ['M-15 -74Q-34 -70 -44 -62', 'M15 -74Q24 -58 21 -44'],
-      holdR: ['M-15 -74Q-24 -58 -21 -44', 'M15 -74Q27 -56 30 -38'],
-      holdL: ['M-15 -74Q-26 -62 -31 -50', 'M15 -74Q24 -58 21 -44'],
-      wave: ['M-15 -74Q-24 -58 -21 -44', 'M15 -74Q30 -84 31 -100'],
-      both: ['M-15 -74Q-26 -62 -31 -50', 'M15 -74Q27 -60 32 -48']
-    }[o.arms || 'down'];
-    h += '<rect x="-10" y="-40" width="8" height="40" rx="4" fill="' + pants + '"/><rect x="2" y="-40" width="8" height="40" rx="4" fill="' + pants + '"/>';
-    if (o.bag) h += '<rect x="-31" y="-82" width="20" height="32" rx="8" fill="' + o.bag + '"/>';
-    h += '<path d="' + arms[0] + '" stroke="' + shirt + '" stroke-width="8" stroke-linecap="round" fill="none"/><path d="' + arms[1] + '" stroke="' + shirt + '" stroke-width="8" stroke-linecap="round" fill="none"/>';
-    h += '<rect x="-18" y="-84" width="36" height="50" rx="15" fill="' + shirt + '"/>';
-    h += '<rect x="-4" y="-90" width="8" height="8" fill="' + C.skin2 + '"/><circle cx="0" cy="-102" r="15" fill="' + C.skin + '"/>';
-    var hair = {
-      short: '<path d="M-15 -104C-15 -124 15 -124 15 -104C10 -112 -10 -112 -15 -104Z" fill="' + C.dark + '"/>',
-      bob: '<path d="M-17 -100C-19 -126 19 -126 17 -100L15 -91L12 -106C6 -112 -6 -112 -12 -106L-15 -91Z" fill="' + (o.hairColor || '#8C7B6E') + '"/>',
-      long: '<path d="M-17 -102C-19 -126 19 -126 17 -102L19 -78L12 -80L12 -106C6 -112 -6 -112 -12 -106L-12 -80L-19 -78Z" fill="' + C.dark + '"/>',
-      kid: '<path d="M-15 -104C-15 -122 15 -122 15 -104C8 -114 -6 -114 -15 -104Z" fill="#6B4A35"/>'
-    }[o.hair || 'short'];
-    h += hair;
-    if (o.beard) h += '<path d="M-12 -98C-10 -86 10 -86 12 -98C9 -92 4 -90 0 -90C-4 -90 -9 -92 -12 -98Z" fill="' + C.dark + '" opacity=".85"/>';
-    h += '<circle cx="-5" cy="-102" r="1.8" fill="' + C.ink + '"/><circle cx="5" cy="-102" r="1.8" fill="' + C.ink + '"/>';
-    if (!o.beard) h += '<path d="M-4 -96Q0 -93 4 -96" stroke="#9A5B45" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
-    if (o.glasses) h += '<circle cx="-5.5" cy="-102" r="4.5" fill="none" stroke="' + C.ink + '" stroke-width="1.4"/><circle cx="5.5" cy="-102" r="4.5" fill="none" stroke="' + C.ink + '" stroke-width="1.4"/>';
-    return '<g transform="translate(' + o.x + ' ' + o.y + ') scale(' + s + ')">' + h + '</g>';
+  /* Бюст человека. Центр головы в (x,y). */
+  function bust(o) {
+    var s = o.s || 1, hc = o.hairColor, dk = o.brow || shade(hc), cl = o.clothes, h = '';
+    var line = ' stroke="' + INK + '" stroke-width="1.6" stroke-linejoin="round"';
+    /* волосы сзади */
+    var back = {
+      bob: 'M-41 0C-45 -48 45 -48 41 0L42 30C32 37 25 31 27 20L-27 20C-25 31 -32 37 -42 30Z',
+      long: 'M-41 -4C-47 -52 47 -52 41 -4L45 72C31 78 22 68 26 42L-26 42C-22 68 -31 78 -45 72Z',
+      wavy: 'M-41 -2C-47 -52 47 -52 41 -2C47 20 40 40 47 54C35 60 26 48 28 28L-28 28C-26 48 -35 60 -47 54C-40 40 -47 20 -41 -2Z',
+      bun: 'M-36 -2C-40 -46 40 -46 36 -2Z'
+    }[o.hair];
+    if (back) h += '<path d="' + back + '" fill="' + hc + '"' + line + '/>';
+    if (o.hair === 'bun') h += '<circle cx="0" cy="-44" r="14" fill="' + hc + '"' + line + '/>';
+    /* туловище */
+    h += '<path d="M-74 240C-74 86 -46 60 0 60C46 60 74 86 74 240Z" fill="' + cl + '"' + line + '/>';
+    if (o.collar === 'shirt') h += '<path d="M-16 60L0 82L16 60L8 56L0 66L-8 56Z" fill="#fff"' + line + '/>';
+    if (o.collar === 'v') h += '<path d="M-14 60L0 80L14 60" fill="' + P.skinSh + '"' + line + '/>';
+    if (o.collar === 'round') h += '<path d="M-18 60Q0 74 18 60" fill="none"' + line + '/>';
+    if (o.cardigan) h += '<path d="M0 66V240" stroke="' + INK + '" stroke-width="1.4"/><circle cx="-5" cy="96" r="2.2" fill="' + INK + '"/><circle cx="-5" cy="118" r="2.2" fill="' + INK + '"/>';
+    if (o.straps) h += '<path d="M-36 66L-30 240M36 66L30 240" stroke="' + o.straps + '" stroke-width="9" stroke-linecap="round"/>';
+    /* шея, уши, лицо */
+    h += '<path d="M-11 30H11V62Q0 70 -11 62Z" fill="' + P.skinSh + '"' + line + '/>';
+    h += '<ellipse cx="-33" cy="4" rx="6" ry="9" fill="' + P.skin + '"' + line + '/><ellipse cx="33" cy="4" rx="6" ry="9" fill="' + P.skin + '"' + line + '/>';
+    h += '<ellipse cx="0" cy="0" rx="33" ry="39" fill="' + P.skin + '"' + line + '/>';
+    if (o.beard) h += '<path d="M-31 10C-29 34 -15 44 0 44C15 44 29 34 31 10C24 24 14 30 0 30C-14 30 -24 24 -31 10Z" fill="' + hc + '" opacity=".8"/>';
+    /* чёлка / причёска спереди */
+    var front = {
+      bob: 'M-35 -4C-37 -44 35 -46 36 -8C26 -26 4 -30 -10 -24C-20 -18 -28 -10 -35 -4Z',
+      long: 'M-35 -4C-38 -46 36 -50 36 -6C30 -24 12 -34 -4 -30C-14 -22 -26 -12 -35 -4Z',
+      wavy: 'M-35 -2C-38 -46 36 -50 36 -4C28 -20 18 -30 2 -30C-6 -22 -20 -14 -35 -2Z',
+      short: 'M-34 -8C-38 -46 36 -50 35 -10C30 -22 22 -28 6 -28C-10 -28 -24 -22 -34 -8Z',
+      bun: 'M-34 -4C-36 -38 36 -38 34 -4C28 -20 14 -27 0 -27C-14 -27 -28 -20 -34 -4Z',
+      kid: 'M-33 -8C-37 -44 35 -48 34 -10C26 -18 18 -26 4 -22C-6 -30 -22 -22 -33 -8Z'
+    }[o.hair];
+    h += '<path d="' + front + '" fill="' + hc + '"' + line + '/>';
+    /* брови, глаза */
+    h += '<path d="M-20 -11Q-13 -15 -6 -12M6 -12Q13 -15 20 -11" stroke="' + dk + '" stroke-width="2.4" stroke-linecap="round" fill="none"/>';
+    if (o.eyes === 'smile') h += '<path d="M-19 3Q-13 -3 -7 3M7 3Q13 -3 19 3" stroke="' + INK + '" stroke-width="2.4" stroke-linecap="round" fill="none"/>';
+    else h += '<ellipse cx="-13" cy="2" rx="3.2" ry="4" fill="' + INK + '"/><ellipse cx="13" cy="2" rx="3.2" ry="4" fill="' + INK + '"/><circle cx="-12" cy="0.5" r="1.1" fill="#fff"/><circle cx="14" cy="0.5" r="1.1" fill="#fff"/>';
+    if (o.age) h += '<path d="M-25 2l-4 -2M-25 6l-4 1M25 2l4 -2M25 6l4 1M-10 30q10 4 20 0" stroke="' + P.skinSh + '" stroke-width="1.4" stroke-linecap="round" fill="none"/>';
+    if (o.glasses) h += '<rect x="-23" y="-6" width="18" height="15" rx="7" fill="none" stroke="' + INK + '" stroke-width="1.8"/><rect x="5" y="-6" width="18" height="15" rx="7" fill="none" stroke="' + INK + '" stroke-width="1.8"/><path d="M-5 0H5" stroke="' + INK + '" stroke-width="1.8"/>';
+    /* нос, румянец, улыбка */
+    h += '<path d="M1 7Q5 15 -1 17" stroke="#D49A85" stroke-width="1.8" stroke-linecap="round" fill="none"/>';
+    h += '<ellipse cx="-19" cy="16" rx="6.5" ry="3.8" fill="' + P.blush + '" opacity=".5"/><ellipse cx="19" cy="16" rx="6.5" ry="3.8" fill="' + P.blush + '" opacity=".5"/>';
+    if (o.beard) h += '<path d="M-7 27Q0 32 7 27" stroke="' + INK + '" stroke-width="2" stroke-linecap="round" fill="none"/>';
+    else if (o.mouth === 'open') h += '<path d="M-8 24Q0 34 8 24Z" fill="' + P.lip + '"' + line + '/>';
+    else h += '<path d="M-8 24Q0 31 8 24" stroke="' + P.lip + '" stroke-width="2.4" stroke-linecap="round" fill="none"/>';
+    return '<g transform="translate(' + o.x + ' ' + o.y + ') rotate(' + (o.tilt || 0) + ') scale(' + s + ')">' + h + '</g>';
   }
-  function heart(x, y, s, fill) { return '<path transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M0 6C-6 -2 -16 0 -16 8C-16 16 -6 22 0 28C6 22 16 16 16 8C16 0 6 -2 0 6Z" fill="' + (fill || C.warm) + '"/>'; }
-  function bubble(x, y, inner) { return '<g transform="translate(' + x + ' ' + y + ')"><circle r="22" fill="#fff"/>' + inner + '</g>'; }
-  function base(inner) {
-    return '<svg class="illu" viewBox="0 0 480 300" role="img" aria-hidden="true">' +
-      '<circle cx="300" cy="150" r="128" fill="' + C.b5 + '"/><circle cx="96" cy="70" r="10" fill="' + C.b4 + '"/><circle cx="440" cy="60" r="6" fill="' + C.b4 + '"/><circle cx="60" cy="210" r="5" fill="' + C.b4 + '"/>' +
-      '<ellipse cx="250" cy="272" rx="210" ry="12" fill="' + C.b4 + '" opacity=".6"/>' + inner + '</svg>';
+  function shade(c) { return c === '#B9B4AE' ? '#8E8780' : '#5A3D2E'; }
+  function hand(x, y, r) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + (r || 11) + '" ry="' + ((r || 11) * 0.85) + '" fill="' + P.skin + '" stroke="' + INK + '" stroke-width="1.6"/>'; }
+  function arm(d, color, w) { return '<path d="' + d + '" stroke="' + INK + '" stroke-width="' + ((w || 22) + 3.2) + '" stroke-linecap="round" fill="none"/><path d="' + d + '" stroke="' + color + '" stroke-width="' + (w || 22) + '" stroke-linecap="round" fill="none"/>'; }
+  function heart(x, y, s, f) { return '<path transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M0 6C-6 -2 -16 0 -16 8C-16 16 -6 22 0 28C6 22 16 16 16 8C16 0 6 -2 0 6Z" fill="' + (f || P.heart) + '"/>'; }
+  function leaf(x, y, r, s) { return '<g transform="translate(' + x + ' ' + y + ') rotate(' + r + ') scale(' + (s || 1) + ')"><path d="M0 0V-46" stroke="' + P.leaf2 + '" stroke-width="2"/><ellipse cx="-7" cy="-14" rx="7" ry="4" transform="rotate(-30 -7 -14)" fill="' + P.leaf + '"/><ellipse cx="7" cy="-24" rx="7" ry="4" transform="rotate(30 7 -24)" fill="' + P.leaf + '"/><ellipse cx="-7" cy="-34" rx="7" ry="4" transform="rotate(-30 -7 -34)" fill="' + P.leaf + '"/><ellipse cx="0" cy="-47" rx="4" ry="7" fill="' + P.leaf + '"/></g>'; }
+  function bubble(x, y, inner) { return '<g transform="translate(' + x + ' ' + y + ')"><circle r="25" fill="#fff" stroke="' + P.bg2 + '" stroke-width="2"/>' + inner + '</g>'; }
+  var I = {
+    phone: '<rect x="-8" y="-13" width="16" height="26" rx="4" fill="none" stroke="#3567E8" stroke-width="2.4"/><path d="M-3 8H3" stroke="#3567E8" stroke-width="2.4" stroke-linecap="round"/>',
+    heart: '<path transform="translate(0 -8) scale(.7)" d="M0 6C-6 -2 -16 0 -16 8C-16 16 -6 22 0 28C6 22 16 16 16 8C16 0 6 -2 0 6Z" fill="' + P.heart + '"/>',
+    home: '<path d="M-12 0L0 -11L12 0V12H-12Z" fill="none" stroke="#3567E8" stroke-width="2.4" stroke-linejoin="round"/><path d="M-3 12V4H3V12" stroke="#3567E8" stroke-width="2.4" fill="none"/>',
+    cap: '<path d="M-14 -3L0 -10L14 -3L0 4Z" fill="#3567E8"/><path d="M-8 0V7C-4 11 4 11 8 7V0" stroke="#3567E8" stroke-width="2.4" fill="none"/>',
+    bulb: '<path d="M-8 -2a8 8 0 1 1 16 0c0 5-4 6-4 10h-8c0-4-4-5-4-10z" fill="#FFD68A" stroke="' + INK + '" stroke-width="1.4"/><path d="M-4 12H4" stroke="' + INK + '" stroke-width="2" stroke-linecap="round"/>',
+    check: '<path d="M-10 0L-3 7L10 -7" stroke="#3567E8" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    talk: '<rect x="-14" y="-10" width="28" height="18" rx="9" fill="#3567E8"/><path d="M-6 8L-9 14L0 8Z" fill="#3567E8"/><circle cx="-6" cy="-1" r="2" fill="#fff"/><circle cx="0" cy="-1" r="2" fill="#fff"/><circle cx="6" cy="-1" r="2" fill="#fff"/>',
+    book: '<path d="M0 -8C-6 -12 -12 -12 -14 -10V10C-12 8 -6 8 0 12C6 8 12 8 14 10V-10C12 -12 6 -12 0 -8ZM0 -8V12" fill="#fff" stroke="#3567E8" stroke-width="2.2" stroke-linejoin="round"/>',
+    ball: '<circle r="12" fill="#FFD68A" stroke="' + INK + '" stroke-width="1.4"/><path d="M-12 0H12M0 -12C6 -6 6 6 0 12M0 -12C-6 -6 -6 6 0 12" stroke="' + INK + '" stroke-width="1.2" fill="none"/>',
+    cross: '<path d="M-4 -12H4V-4H12V4H4V12H-4V4H-12V-4H-4Z" fill="#F4A6A0"/>',
+    sprout: '<path d="M0 12V-2" stroke="' + P.leaf2 + '" stroke-width="2.4"/><path d="M0 -2C-2 -12 -12 -12 -12 -12C-12 -4 -6 0 0 -2ZM0 2C2 -8 12 -8 12 -8C12 0 6 4 0 2Z" fill="' + P.leaf + '"/>'
+  };
+  function frame(inner) {
+    return '<svg class="illu" viewBox="0 0 480 300" role="img" aria-hidden="true"><defs><clipPath id="ic' + (++uid) + '"><rect width="480" height="300"/></clipPath></defs><g clip-path="url(#ic' + uid + ')">' +
+      '<ellipse cx="250" cy="200" rx="170" ry="150" fill="' + P.bg + '"/>' + inner + '</g></svg>';
   }
 
   var SCENES = {
-    /* Уход за близким: дочь рядом с мамой, дом, тепло */
+    /* Ирина обнимает маму: забота дома */
     'uhod-za-tyazhelobolnym': function () {
-      return base(
-        '<rect x="300" y="46" width="96" height="84" rx="10" fill="#fff" stroke="' + C.b4 + '" stroke-width="3"/><path d="M348 46V130M300 88H396" stroke="' + C.b4 + '" stroke-width="3"/><circle cx="374" cy="68" r="11" fill="' + C.sun + '"/>' +
-        '<rect x="96" y="150" width="16" height="120" rx="7" fill="' + C.b3 + '"/><rect x="300" y="200" width="12" height="70" rx="6" fill="' + C.b3 + '"/>' +
-        '<rect x="104" y="206" width="206" height="30" rx="12" fill="#fff" stroke="' + C.b4 + '" stroke-width="3"/>' +
-        '<ellipse cx="146" cy="198" rx="28" ry="13" fill="#fff" stroke="' + C.b4 + '" stroke-width="3"/>' +
-        '<circle cx="150" cy="186" r="15" fill="' + C.skin + '"/><path d="M135 184C134 166 166 166 165 184C160 176 140 176 135 184Z" fill="' + C.grey + '"/><circle cx="150" cy="168" r="6" fill="' + C.grey + '"/>' +
-        '<path d="M143 187Q146 189 149 187M152 187Q155 189 158 187" stroke="' + C.ink + '" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M146 193Q150 196 154 193" stroke="#9A5B45" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
-        '<path d="M168 196H300V218C300 224 296 228 290 228H178C172 228 168 224 168 218Z" fill="' + C.b2 + '"/>' +
-        person({ x: 352, y: 268, hair: 'bob', glasses: true, shirt: C.b1, arms: 'reachL' }) +
-        heart(318, 132, 1, C.warm) +
-        '<rect x="410" y="232" width="30" height="36" rx="6" fill="' + C.b3 + '"/><path d="M425 232C410 210 418 196 425 190C432 196 440 210 425 232Z" fill="' + C.b2 + '"/>'
+      return frame(
+        leaf(84, 300, -12, 1.3) + leaf(410, 300, 14, 1.2) +
+        bust({ x: 196, y: 150, s: 0.95, hair: 'bun', hairColor: '#B9B4AE', clothes: '#E8D5C0', collar: 'round', cardigan: true, glasses: true, eyes: 'smile', age: true, tilt: 6 }) +
+        '<path d="M110 262C130 236 270 236 292 262V300H110Z" fill="#A9C3E8" stroke="' + INK + '" stroke-width="1.6"/><path d="M128 272H274M138 288H266" stroke="#8FAEDB" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M176 236H212V250C212 260 204 266 194 266C184 266 176 260 176 250Z" fill="#fff" stroke="' + INK + '" stroke-width="1.6"/><path d="M212 242C222 242 222 254 211 254" stroke="' + INK + '" stroke-width="1.6" fill="none"/><path d="M188 230C186 224 192 222 190 216M198 230C196 224 202 222 200 216" stroke="#C9D7F7" stroke-width="2" stroke-linecap="round" fill="none"/>' + hand(172, 252, 10) + hand(216, 256, 10) +
+        bust({ x: 306, y: 128, hair: 'bob', hairColor: '#9A5A3C', clothes: '#7FA4D9', collar: 'v', eyes: 'smile', tilt: -5 }) +
+        arm('M262 214C246 200 236 196 222 196', '#7FA4D9') + hand(214, 196, 11) +
+        heart(252, 54, 1.2) +
+        bubble(78, 96, I.phone) + bubble(414, 82, I.home) + bubble(424, 196, I.heart)
       );
     },
-    /* Смена профессии: от ноутбука вверх по ступеням к новой роли */
+    /* Анна и наставник за ноутбуком */
     'smena-professii': function () {
-      return base(
-        '<rect x="70" y="196" width="150" height="10" rx="5" fill="' + C.b3 + '"/><rect x="82" y="206" width="8" height="64" rx="4" fill="' + C.b3 + '"/><rect x="198" y="206" width="8" height="64" rx="4" fill="' + C.b3 + '"/>' +
-        '<rect x="104" y="148" width="78" height="48" rx="6" fill="' + C.b1 + '"/><rect x="96" y="194" width="94" height="6" rx="3" fill="' + C.ink + '"/>' +
-        '<circle cx="132" cy="168" r="4" fill="#fff"/><circle cx="154" cy="168" r="4" fill="#fff"/><path d="M134 180Q143 186 152 180" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-        '<rect x="300" y="232" width="150" height="40" rx="6" fill="' + C.b4 + '"/><rect x="340" y="192" width="110" height="40" rx="6" fill="' + C.b3 + '"/><rect x="380" y="152" width="70" height="40" rx="6" fill="' + C.b2 + '"/>' +
-        '<path d="M415 152V108" stroke="' + C.ink + '" stroke-width="4" stroke-linecap="round"/><path d="M417 108L446 118L417 128Z" fill="' + C.warm + '"/>' +
-        person({ x: 262, y: 268, hair: 'long', shirt: C.b2, arms: 'wave' }) +
-        bubble(250, 90, '<path d="M-8 -2a8 8 0 1 1 16 0c0 5-4 6-4 10h-8c0-4-4-5-4-10z" fill="' + C.sun + '"/><rect x="-4" y="10" width="8" height="4" rx="2" fill="' + C.b3 + '"/>') +
-        bubble(330, 60, '<path d="M-10 0L-3 7L10 -7" stroke="' + C.b1 + '" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>') +
-        bubble(190, 52, '<path d="M-12 -2L0 -8L12 -2L0 4Z" fill="' + C.b1 + '"/><path d="M-7 1V7C-3 10 3 10 7 7V1" stroke="' + C.b1 + '" stroke-width="3" fill="none"/>')
+      return frame(
+        leaf(80, 300, -12, 1.2) + leaf(418, 300, 12, 1.1) +
+        bust({ x: 198, y: 136, hair: 'long', hairColor: '#B88A5A', clothes: '#F2C77A', collar: 'round' }) +
+        bust({ x: 318, y: 122, s: 1.02, hair: 'short', hairColor: '#7A5A3E', clothes: '#8FB3E0', collar: 'shirt', glasses: true, eyes: 'smile', tilt: -6 }) +
+        '<path d="M150 236H300L314 300H136Z" fill="#DCE5F5" stroke="' + INK + '" stroke-width="1.6"/><rect x="160" y="226" width="130" height="10" rx="4" fill="#B7C7E6" stroke="' + INK + '" stroke-width="1.6"/>' +
+        '<circle cx="225" cy="268" r="9" fill="#fff" stroke="' + INK + '" stroke-width="1.4"/><path d="M221 268l3 3 5 -6" stroke="#3567E8" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+        arm('M282 212C270 222 262 230 254 238', '#8FB3E0', 20) + hand(250, 240, 10) +
+        bubble(78, 92, I.cap) + bubble(412, 76, I.bulb) + bubble(426, 192, I.check)
       );
     },
-    /* Ребёнок в школе: папа и сын идут к школе, ребёнок говорит */
+    /* Михаил рядом с сыном-первоклассником */
     'rebenok-v-shkolu': function () {
-      return base(
-        '<rect x="300" y="120" width="140" height="150" rx="8" fill="#fff" stroke="' + C.b4 + '" stroke-width="3"/><path d="M290 124L370 72L450 124Z" fill="' + C.b2 + '"/>' +
-        '<circle cx="370" cy="104" r="10" fill="#fff"/><path d="M370 98V104L374 107" stroke="' + C.b1 + '" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-        '<rect x="322" y="144" width="26" height="22" rx="4" fill="' + C.b4 + '"/><rect x="392" y="144" width="26" height="22" rx="4" fill="' + C.b4 + '"/><rect x="322" y="184" width="26" height="22" rx="4" fill="' + C.b4 + '"/><rect x="392" y="184" width="26" height="22" rx="4" fill="' + C.b4 + '"/>' +
-        '<rect x="354" y="214" width="32" height="56" rx="6" fill="' + C.b3 + '"/>' +
-        '<path d="M232 268C270 262 310 266 354 266" stroke="' + C.b3 + '" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" fill="none"/>' +
-        person({ x: 150, y: 268, hair: 'short', beard: true, shirt: C.b1, arms: 'holdR' }) +
-        person({ x: 201, y: 268, s: 0.68, hair: 'kid', shirt: C.b3, pants: C.b1, arms: 'holdL', bag: C.warm }) +
-        '<g transform="translate(232 150)"><rect x="0" y="0" width="58" height="34" rx="17" fill="#fff"/><path d="M8 30L4 44L20 32Z" fill="#fff"/><circle cx="17" cy="17" r="3.5" fill="' + C.b2 + '"/><circle cx="29" cy="17" r="3.5" fill="' + C.b2 + '"/><circle cx="41" cy="17" r="3.5" fill="' + C.b2 + '"/></g>'
+      return frame(
+        leaf(84, 300, -12, 1.2) + leaf(418, 300, 12, 1.1) +
+        bust({ x: 300, y: 124, hair: 'short', hairColor: '#8E6B45', clothes: '#7FA4D9', collar: 'round', beard: true, eyes: 'smile', tilt: -8 }) +
+        bust({ x: 186, y: 176, s: 0.72, hair: 'kid', hairColor: '#D9B46E', brow: '#A8844A', clothes: '#F2C77A', collar: 'round', straps: '#E58C7E', tilt: 4 }) +
+        arm('M258 214C240 214 226 220 214 230', '#7FA4D9') + hand(208, 232, 11) +
+        bubble(80, 92, I.talk) + bubble(412, 78, I.book) + bubble(426, 194, I.ball)
       );
     },
-    /* Планирование ребёнка: пара вместе, сердце и несколько дорог */
+    /* Оля и Игорь вместе */
     'planirovanie-rebenka': function () {
-      return base(
-        '<path d="M70 262C140 250 150 214 230 214" stroke="' + C.b4 + '" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M430 262C360 250 350 214 270 214" stroke="' + C.b4 + '" stroke-width="6" stroke-linecap="round" fill="none"/>' +
-        '<circle cx="110" cy="250" r="7" fill="' + C.b3 + '"/><circle cx="170" cy="226" r="7" fill="' + C.b3 + '"/><circle cx="390" cy="250" r="7" fill="' + C.b3 + '"/><circle cx="330" cy="226" r="7" fill="' + C.b3 + '"/>' +
-        '<path d="M318 120V80" stroke="' + C.ink + '" stroke-width="1.5"/>' + heart(318, 50, 1.6, C.warm) +
-        person({ x: 228, y: 268, hair: 'long', shirt: C.b2, arms: 'holdR' }) +
-        person({ x: 282, y: 268, hair: 'short', shirt: C.b1, arms: 'holdL' }) +
-        '<path d="M254 222Q255 216 256 222" stroke="' + C.skin + '" stroke-width="8" stroke-linecap="round"/>' +
-        '<g transform="translate(372 132)"><path d="M0 22L22 4L44 22V50H0Z" fill="#fff" stroke="' + C.b4 + '" stroke-width="3" stroke-linejoin="round"/><rect x="16" y="30" width="12" height="20" rx="3" fill="' + C.b3 + '"/></g>'
+      return frame(
+        leaf(84, 300, -12, 1.2) + leaf(418, 300, 12, 1.1) +
+        bust({ x: 296, y: 124, hair: 'short', hairColor: '#6B4A35', clothes: '#8FB3E0', collar: 'shirt', eyes: 'smile', tilt: -6 }) +
+        bust({ x: 200, y: 138, hair: 'wavy', hairColor: '#D2AE78', brow: '#A8844A', clothes: '#F3B7A8', collar: 'v', eyes: 'smile', tilt: 10 }) +
+        heart(248, 40, 1.3) +
+        bubble(80, 94, I.talk) + bubble(412, 80, I.home) + bubble(426, 194, I.sprout)
       );
     }
   };
 
+  /* Портреты героев для историй */
+  var LOOKS = {
+    irina: { hair: 'bob', hairColor: '#9A5A3C', clothes: '#7FA4D9', collar: 'v', eyes: 'smile' },
+    anna: { hair: 'long', hairColor: '#B88A5A', clothes: '#F2C77A', collar: 'round' },
+    mikhail: { hair: 'short', hairColor: '#8E6B45', clothes: '#7FA4D9', collar: 'round', beard: true, eyes: 'smile' }
+  };
+  window.NAV_PORTRAIT = function (look) {
+    var o = {}, k, src = LOOKS[look] || LOOKS.anna; for (k in src) o[k] = src[k];
+    o.x = 60; o.y = 50; o.s = 0.8;
+    var id = 'pc' + (++uid);
+    return '<svg class="portrait" viewBox="0 0 120 120" aria-hidden="true"><defs><clipPath id="' + id + '"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#' + id + ')"><rect width="120" height="120" fill="' + P.bg + '"/>' + bust(o) + '</g></svg>';
+  };
   window.NAV_ILLU = function (slug) { return SCENES[slug] ? SCENES[slug]() : ''; };
 })();

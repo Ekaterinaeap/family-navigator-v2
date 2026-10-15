@@ -51,36 +51,15 @@
       '<path d="M31 46C31 21 89 21 89 46Z" fill="#fff" stroke="#1F4FBF" stroke-width="2.5" stroke-linejoin="round"/>' +
       '<rect x="29" y="41" width="62" height="9" rx="4.5" fill="#0B1F33"/>' +
       '<path d="M38 49Q60 59 82 49L80 54Q60 63 40 54Z" fill="#0B1F33"/>' +
-      '<path d="M60 28l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z" fill="#0D4CD3"/>' +
+      
       '<ellipse cx="47" cy="69" rx="8.5" ry="9.5" fill="#fff"/><ellipse cx="73" cy="69" rx="8.5" ry="9.5" fill="#fff"/>' +
       '<circle class="m-eye" cx="48.5" cy="71" r="4.6" fill="#0B1F33"/><circle class="m-eye" cx="74.5" cy="71" r="4.6" fill="#0B1F33"/>' +
       '<circle cx="50" cy="69" r="1.6" fill="#fff"/><circle cx="76" cy="69" r="1.6" fill="#fff"/>' +
       '<ellipse cx="37" cy="83" rx="6" ry="3.8" fill="#FF9DB4" opacity=".55"/><ellipse cx="83" cy="83" rx="6" ry="3.8" fill="#FF9DB4" opacity=".55"/>' +
       '<path d="M52 84Q60 92 68 84" stroke="#0B1F33" stroke-width="3" stroke-linecap="round" fill="none"/></svg>';
   }
-  /* Портреты героев в плоском стиле LifeSG */
-  function portrait(look) {
-    var c = 'pc' + (++uid), hair = '', extra = '', shirt = '#3567E8';
-    if (look === 'irina') {
-      hair = '<path d="M30 45C28 22 68 22 66 45C67 52 64 58 60 59L60 42C55 35 41 35 36 42L36 59C32 58 29 52 30 45Z" fill="#8C7B6E"/>';
-      extra = '<circle cx="42" cy="46" r="5" fill="none" stroke="#33475B" stroke-width="1.6"/><circle cx="55" cy="46" r="5" fill="none" stroke="#33475B" stroke-width="1.6"/><path d="M47 46h3" stroke="#33475B" stroke-width="1.6"/>';
-      shirt = '#5A7FD6';
-    } else if (look === 'anna') {
-      hair = '<path d="M29 46C27 21 69 21 67 46L69 74C63 76 60 70 60 63L60 41C55 33 41 33 36 41L36 63C36 70 33 76 27 74Z" fill="#3B2A22"/><path d="M35 40C40 30 56 29 62 38C55 36 44 37 35 40Z" fill="#3B2A22"/>';
-      shirt = '#2F62E6';
-    } else {
-      hair = '<path d="M32 40C31 23 65 23 64 40C60 33 53 31 48 31C42 31 36 34 32 40Z" fill="#3E2C21"/>';
-      extra = '<path d="M35 49C37 63 59 63 61 49C59 57 54 60 48 60C42 60 37 57 35 49Z" fill="#3E2C21" opacity=".85"/>';
-      shirt = '#1F4FBF';
-    }
-    return '<svg class="portrait" viewBox="0 0 96 96" aria-hidden="true"><defs><clipPath id="' + c + '"><circle cx="48" cy="48" r="48"/></clipPath></defs>' +
-      '<g clip-path="url(#' + c + ')"><rect width="96" height="96" fill="#E9EFFC"/><g transform="translate(-9.6 -2) scale(1.2)">' +
-      '<path d="M14 100C14 78 29 68 48 68C67 68 82 78 82 100Z" fill="' + shirt + '"/>' +
-      '<rect x="43" y="56" width="10" height="14" rx="4" fill="#E8B892"/>' +
-      '<ellipse cx="48" cy="45" rx="15" ry="17" fill="#F2C8A6"/>' + hair +
-      '<circle cx="42.5" cy="46" r="1.8" fill="#0B1F33"/><circle cx="54" cy="46" r="1.8" fill="#0B1F33"/>' +
-      '<path d="M44 53Q48 56 52 53" stroke="#9A5B45" stroke-width="1.8" fill="none" stroke-linecap="round"/>' + extra + '</g></g></svg>';
-  }
+  /* Портреты героев — из illustrations.js, в том же стиле, что и баннеры */
+  function portrait(look) { return window.NAV_PORTRAIT(look); }
 
   /* ---------- search ---------- */
   var STOP = ['не', 'на', 'по', 'за', 'из', 'от', 'до', 'во', 'со', 'после', 'что', 'как', 'для', 'мой', 'моя', 'мое', 'мои', 'меня', 'мне', 'нас', 'нам', 'это', 'уже', 'или', 'при', 'без', 'все', 'всё', 'его', 'она', 'они', 'когда', 'где', 'надо', 'нужно', 'делать', 'очень', 'если', 'над', 'под', 'про', 'так', 'там', 'тут', 'чем', 'чтобы', 'хочу', 'у'];
